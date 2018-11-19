@@ -1,0 +1,17 @@
+{
+  "name": "pupeeteer-balloting",
+  "version": "1.0.0",
+  "description": "Pupeeteer app for balloting on my behalf",
+  "main": "index.js",
+  "scripts": {
+    "start": "env DEBUG=\"puppeteer:session\" node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bakare Emmanuel",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^6.1.0",
+    "puppeteer": "^1.10.0",
+    "random-words": "^1.1.0"
+  }
+}

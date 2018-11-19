@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "Puppeteer workaround - Navigation blocker",
+  "version": "1.0",
+  "permissions": [
+    "webRequest",
+    "*://*/*",
+    "webRequestBlocking",
+    "tabs"
+  ],
+  "background": {
+    "persistent": true,
+    "scripts": [
+      "background.js"
+    ]
+  }
+}
