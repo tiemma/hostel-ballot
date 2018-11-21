@@ -68,11 +68,13 @@ let delay = 0;
 
         await page.goto(hallId, {timeout: options.timeout});
 
+        await page.waitForSelector(fields.BALLOT_SUBMIT_BUTTON, {timeout: options.timeout});
+
         await page.click(fields.BALLOT_SUBMIT_BUTTON);
 
         // await page.waitForNavigation({timeout: options.timeout, waitUntil: options.waitUntil});
 
-        await page.waitForSelector('#errordiv', {timeout: options.timeout});
+        await page.waitForSelector(fields.ERROR_DIV, {timeout: options.timeout});
 
         const spaceFree = await page.evaluate(() => document.querySelector('#errordiv').textContent);
 
@@ -82,6 +84,11 @@ let delay = 0;
 
         if (!spaceFree.includes('Sorry')) {
             throw new Error('Space acquired');
+        }
+
+
+        if (delay > 100000){
+            delay = 10000;
         }
 
         setTimeout(async () => {

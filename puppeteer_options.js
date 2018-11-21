@@ -6,5 +6,5 @@ module.exports = {
     disabledResources: ['stylesheet', 'media', 'font', 'script', 'image'],
     userDataDir: "./data",
     cacheEnabled: true,
-    halls: ["MARIERE+HALL", 'JAJA']
+    halls: ["MOREMI+HALL", 'HONOURS+HALL']
 };
