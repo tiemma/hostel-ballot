@@ -71,6 +71,13 @@ MOREMI+HALL
 
 Add the ones you want to use to ballot in the halls array.
 
+
+Before you run anything, be sure to rename the **.env.sample** file to **.env**
+
+You'd put in your matric no and password there
+
+Remember to do this part, for windows users, enable hidden folders to see this file or use vscode 
+
 From there, sit back and run
 
 > npm start
