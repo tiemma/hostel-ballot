@@ -84,6 +84,10 @@ let delay = 0;
             throw new Error('Space acquired');
         }
 
+        if (delay > 100000){
+            delay = 10000;
+        }
+
         setTimeout(async () => {
             await page.goto(hallId, {timeout: options.timeout});
 
