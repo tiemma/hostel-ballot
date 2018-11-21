@@ -4,7 +4,7 @@
   "description": "Pupeeteer app for balloting on my behalf",
   "main": "index.js",
   "scripts": {
-    "start": "env DEBUG=\"puppeteer:session\" node index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Bakare Emmanuel",
