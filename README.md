@@ -26,59 +26,68 @@ module.exports = {
 
 ```
 
-Change the halls to include the hallid shortcodes  for the following hostels in the [puppeteer_options.js](puppeteer_options.js) file
+Change the halls to include the hallid shortcodes  for the  hostels you want to ballot with in the halls side of the [puppeteer_options.js](puppeteer_options.js) file
 
 ```html
 2018 BALLOTING
 
 MALE
 ====
-AccommodationRooms.aspx?hallid=ENI-NJOKU+HALL
+ENI-NJOKU+HALL
 
-AccommodationRooms.aspx?hallid=PROFESSOR+SABURI+BIOBAKU+HALL
+PROFESSOR+SABURI+BIOBAKU+HALL
 
-AccommodationRooms.aspx?hallid=MARIERE+HALL
+MARIERE+HALL
 
-AccommodationRooms.aspx?hallid=JAJA
+JAJA
 
 
 FEMALE
 ======
 GATE
 ----
-AccommodationRooms.aspx?hallid=QUEEN+AMINA+HALL
+QUEEN+AMINA+HALL
 
-AccommodationRooms.aspx?hallid=KOFO+ADEMOLA+HALL
+KOFO+ADEMOLA+HALL
 
-AccommodationRooms.aspx?hallid=KWAKU+ADADEVOH+HALL
+KWAKU+ADADEVOH+HALL
 
 NEW-HALL
 --------
-AccommodationRooms.aspx?hallid=ALIYU+MAKAMA+BIDA+HALL
+ALIYU+MAKAMA+BIDA+HALL
 
-AccommodationRooms.aspx?hallid=FAGUNWA+HALL
+FAGUNWA+HALL
 
-AccommodationRooms.aspx?hallid=MADAM+TINUBU+HALL
+MADAM+TINUBU+HALL
 
 
 CAMPUS
 ------
-AccommodationRooms.aspx?hallid=HONOURS+HALL
+HONOURS+HALL
 
-AccommodationRooms.aspx?hallid=MOREMI+HALL
+MOREMI+HALL
 
 ```
 
+Add the ones you want to use to ballot in the halls array.
+
+
+Before you run anything, be sure to rename the **.env.sample** file to **.env**
+
+You'd put in your matric no and password there
+
+Remember to do this part, for windows users, enable hidden folders to see this file or use vscode 
 
 From there, sit back and run
 
 > npm start
 
-You can run it multiple times in different browsers provided the data folder for it isn't in use.
+You can run it multiple times in different browser instances by opening a new terminal,
+Try it again if it fails and I  setup four data folders and it will work provided the data folder it picks at random isn't in use.
 
-The data folder has some custom configurations I did to make the page load faster.
+The data folder has some custom configurations I did to make the page load faster hence why it's there, you can copy new ones and increase the number to run more browsers and brute force it to hell.
 
-The chrome extension makes the page load faster by disabling requests for css and othe media files.
+The chrome extension folder is there to make the page load faster by disabling requests for css and othe media files.
 
 
 
