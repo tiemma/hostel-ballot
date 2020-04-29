@@ -1,109 +1,239 @@
-const puppeteer = require('puppeteer');
-const fields = require('./fields');
-const options = require('./puppeteer_options');
+const path = require("path");
+const puppeteer = require("puppeteer");
+const fields = require("./fields");
+const options = require("./puppeteer_options");
 
-require('dotenv').config();
+require("dotenv").config();
 
 console.log(fields);
 console.log(options);
 
-let delay = 0;
+const extenstionPath = path.resolve(__dirname, "./chrome_extension/");
 
-// for(let i = 0; i < 4; i++)
-// {
-//     setTimeout(
+let count = 1;
+
+let delay = 10000;
+
+let trials = 1;
+
+let balloting = false;
+
 (async () => {
-    const browser = await puppeteer.launch({
-        timeout: options.timeout, headless: options.headless, userDataDir: `${options.userDataDir}-${Math.floor(Math.random() * 4)}`, args: [
-            '--load-extension=./chrome_extension/',
-            '--disable-extensions-except=./chrome_extension/'
-        ]
-    });
+	const browser = await puppeteer.launch({
+		timeout: options.timeout,
+		headless: options.headless,
+		userDataDir: `${options.userDataDir}-${Math.floor(Math.random() * 4)}`,
+		args: [
+			`--load-extension=${extenstionPath}`,
+			`--disable-extensions-except=${extenstionPath}`
+		]
+	});
 
-    let page = await browser.newPage();
+	let page = await browser.newPage();
 
-    // await page.setRequestInterception(true);
-    //
-    // page.on('request', (req) => {
-    //     console.log("url for this request" + req.url());
-    //
-    //     if (options.disabledResources.indexOf(req.resourceType()) !== -1) {
-    //         req.abort();
-    //     } else if (req.url().includes("HomePage")) {
-    //         window.open(req.url(), '_blank');
-    //         console.log("Home page found~");
-    //     } else {
-    //         req.continue();
-    //     }
-    // });
+	await page.setJavaScriptEnabled(options.javascriptEnabled);
 
-    await page.setJavaScriptEnabled(options.javascriptEnabled);
+	await page.setCacheEnabled(options.cacheEnabled);
 
-    await page.setCacheEnabled(options.cacheEnabled);
+	async function ballot(hallId) {
+		while (balloting) {
+			await page.goto(hallId, {timeout: options.timeout});
 
-    await page.goto('http://studentportal.unilag.edu.ng/', {timeout: options.timeout});
-    // await page.goto('http://webcache.googleusercontent.com/search?q=cache:http://studentportal.unilag.edu.ng/', {timeout: options.timeout});
+			await page.waitForSelector(fields.BALLOT_SUBMIT_BUTTON, {
+				timeout: options.timeout,
+				waitUntil: options.waitUntil
+			});
 
-    await page.click(fields.LOGIN_USERNAME_ID);
-    await page.keyboard.type(process.env.MATRIC_NO);
+			await page.click(fields.BALLOT_SUBMIT_BUTTON);
 
-    await page.click(fields.LOGIN_PASSWORD_ID);
-    await page.keyboard.type(process.env.PASSWORD);
+			await page.waitForNavigation({
+				timeout: options.timeout,
+				waitUntil: options.waitUntil
+			});
 
-    await page.click(fields.BUTTON_SELECTOR);
+			await page.waitForSelector(fields.ERROR_DIV, {
+				timeout: options.timeout,
+				waitUntil: options.waitUntil
+			});
 
-    await page.waitForNavigation({timeout: options.timeout, waitUntil: options.waitUntil});
+			const spaceFree = await page.evaluate(
+				() => document.querySelector("#errordiv").textContent
+			);
 
-    let count = 1;
+			console.log(`Answer for request ${count} is ${spaceFree}`);
 
-    let delay = 10000;
+			count++;
 
-    while(true) {
+			if (!spaceFree.includes("Sorry")) {
+				console.log("Space Acquired");
+				balloting = false;
+			}
+		}
+		// if (delay > 100000) {
+		// 	delay = 10000;
+		// }
 
-        const hall = options.halls[Math.floor(Math.random() * options.halls.length)];
+		// setTimeout(async () => {
+		// 	await page.goto(hallId, {timeout: options.timeout});
 
-        const hallId = await page.url().split('/').splice(0, 4).join('/') + `/AccommodationReservation.aspx?hallid=${hall}&room=`;
+		// 	await page.waitForSelector(fields.BALLOT_SUBMIT_BUTTON, {
+		// 		timeout: options.timeout,
+		// 		waitUntil: options.waitUntil
+		// 	});
 
-        console.log("Hall is: " + hall + " " + hallId);
+		// 	await page.click(fields.BALLOT_SUBMIT_BUTTON);
+		// }, (delay += 10000));
+	}
 
-        await page.goto(hallId, {timeout: options.timeout});
+	async function restartScript(status, statusText) {
+		try {
+			console.log(`${status}-${statusText}-${trials}`);
+			trials++;
+			if (page.url().includes("AccommodationReservation")) {
+				const hall =
+					options.halls[Math.floor(Math.random() * options.halls.length)];
 
-        await page.waitForSelector(fields.BALLOT_SUBMIT_BUTTON, {timeout: options.timeout});
+				const hallId =
+					page
+						.url()
+						.split("/")
+						.splice(0, 4)
+						.join("/") + `/AccommodationReservation.aspx?hallid=${hall}&room=`;
 
-        await page.click(fields.BALLOT_SUBMIT_BUTTON);
+				console.log("Hall is: " + hall + " " + hallId);
+				await ballot(hallId);
+			} else {
+				balloting = false;
+				await run();
+			}
+		} catch (error) {
+			console.log("Restart Script Error: " + error.message);
+		}
+	}
 
-        // await page.waitForNavigation({timeout: options.timeout, waitUntil: options.waitUntil});
+	// page.on("requestfailed", async request => {
+	// 	if (request.resourceType() === "document") {
+	// 		try {
+	// 			const response = request.response();
+	// 			const responseStatus = response ? response.status() : "5xx";
+	// 			const responseStatusText = response ? response.statusText() : "Server Error";
+	// 			await restartScript(responseStatus, responseStatusText);
+	// 		} catch (error) {
+	// 			console.log("Request Failed Error: " + error.message);
+	// 		}
+	// 	}
+	// });
 
-        await page.waitForSelector(fields.ERROR_DIV, {timeout: options.timeout});
+	// page.on("requestfinished", async request => {
+	// 	if (request.resourceType() === "document") {
+	// 		try {
+	// 			const response = request.response();
+	// 			const responseStatus = response.status();
+	// 			if (response.ok()) {
+	// 				const responseText = await response.text();
+	// 				if (responseText.includes("Gateway Timeout") || responseText.includes('Internal Server Error')) {
+	// 					await restartScript(responseStatus, "Gateway Timeout | Internal Server Error");
+	// 				}
+	// 			}
+	// 		} catch (error) {
+	// 			console.log("Request Finished Error: " + error.message);
+	// 		}
+	// 	}
+	// });
 
-        const spaceFree = await page.evaluate(() => document.querySelector('#errordiv').textContent);
+	page.on("load", () => {
+		page.title().then(title => {
+			if (
+				title.includes("5") ||
+				title.includes("Error") ||
+				title.includes("accommodation.unilag.edu.ng")
+			) {
+				return page.reload({
+					timeout: options.timeout,
+					waitUntil: options.waitUntil
+				});
+			}
+			if (page.url().includes("Login") || page.url().includes('default')) {
+				page
+					.click(fields.LOGIN_USERNAME_ID)
+					.then(() => {
+						return page.keyboard.type(process.env.MATRIC_NO);
+					})
+					.then(() => {
+						return page.click(fields.LOGIN_PASSWORD_ID);
+					})
+					.then(() => {
+						return page.keyboard.type(process.env.PASSWORD);
+					})
+					.then(() => {
+						return page.click(fields.BUTTON_SELECTOR);
+					});
+			}
+			if (
+				page.url().includes("AccommodationReservation") ||
+				page.url().includes('Home')
+			) {
+				const hall =
+					options.halls[Math.floor(Math.random() * options.halls.length)];
 
-        console.log(`Answer for request ${count} is ${spaceFree}`);
+				const hallId =
+					page
+						.url()
+						.split("/")
+						.splice(0, 4)
+						.join("/") + `/AccommodationReservation.aspx?hallid=${hall}&room=`;
+				return ballot(hallId);
+			}
+		});
+	});
 
-        count++;
+	async function run() {
+		try {
+			await page.goto("http://accommodation.unilag.edu.ng/", {
+				timeout: options.timeout
+			});
 
-        if (!spaceFree.includes('Sorry')) {
-            throw new Error('Space acquired');
-        }
+			await page.waitForSelector(fields.LOGIN_USERNAME_ID, {
+				timeout: options.timeout,
+				waitUntil: options.waitUntil
+			});
+			await page.waitForSelector(fields.LOGIN_PASSWORD_ID, {
+				timeout: options.timeout,
+				waitUntil: options.waitUntil
+			});
+			console.log("------------------Hmmmm--------------------");
+			await page.click(fields.LOGIN_USERNAME_ID);
+			await page.keyboard.type(process.env.MATRIC_NO);
 
+			await page.click(fields.LOGIN_PASSWORD_ID);
+			await page.keyboard.type(process.env.PASSWORD);
 
-        if (delay > 100000){
-            delay = 10000;
-        }
+			await page.click(fields.BUTTON_SELECTOR);
 
-        setTimeout(async () => {
-            await page.goto(hallId, {timeout: options.timeout});
+			await page.waitForNavigation({
+				timeout: options.timeout,
+				waitUntil: options.waitUntil
+			});
 
-            await page.click(fields.BALLOT_SUBMIT_BUTTON);
-        }, delay+=10000);
-    }
+			const hall =
+				options.halls[Math.floor(Math.random() * options.halls.length)];
 
-    // }
+			const hallId =
+				page
+					.url()
+					.split("/")
+					.splice(0, 4)
+					.join("/") + `/AccommodationReservation.aspx?hallid=${hall}&room=`;
 
-    // }
-    // browser.close();
+			console.log("Hall is: " + hall + " " + hallId);
+			await ballot(hallId);
+		} catch (error) {
+			console.log("Error:" + error.message);
+			process.exit();
+		}
+	}
+	balloting = true;
+	while (balloting) {
+		await run();
+	}
 })();
-// , delay += 6000 * i);
-
-
-
